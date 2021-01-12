@@ -200,6 +200,8 @@ fi
 ##########
 # Which crypto library do we use
 #
+TARGET_BOTAN2_INC=""
+
 AC_ARG_WITH([crypto-lib],
 AC_HELP_STRING([--with-crypto-lib],[Specify which crypto library to use]),
 crypto_lib=$withval)
@@ -226,15 +228,34 @@ else
         AC_CHECK_LIB([nss3], [PK11_Decrypt], ,
                      AC_MSG_ERROR([Library crypto not found. Install nss!"]))
       else
-        CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
-        BUILD_CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
-	      AC_MSG_RESULT([openssl])
-        AC_CHECK_LIB([crypto], [HMAC_Init_ex], ,
-                     AC_MSG_ERROR([Library crypto not found. Install openssl!"]))
+        if test "$crypto_lib" = "botan-2"; then
+          CFLAGS+=" -DSQLCIPHER_CRYPTO_BOTAN_2"
+          BUILD_CFLAGS+=" -DSQLCIPHER_CRYPTO_BOTAN_2"
+          AC_MSG_RESULT([botan-2])
+          AC_CHECK_LIB([botan-2], [botan_pwdhash], ,
+                       AC_MSG_ERROR([Library botan-2 not found. Install libbotan-2!"]))
+          # find botan-2 includes since they are in a subdir
+          if test "$cross_compiling" != yes; then
+              for dir in /usr /usr/local /usr/contrib /mingw; do
+                AC_CHECK_FILE($dir/include/botan-2/botan/build.h, [
+                  TARGET_BOTAN2_INC="-I$dir/include/botan-2"
+                  break
+                ])
+              done
+          fi
+        else
+          CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
+          BUILD_CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
+          AC_MSG_RESULT([openssl])
+          AC_CHECK_LIB([crypto], [HMAC_Init_ex], ,
+                       AC_MSG_ERROR([Library crypto not found. Install openssl!"]))
+        fi
       fi
     fi
   fi
 fi
+
+AC_SUBST(TARGET_BOTAN2_INC)
 
 ##########
 # Do we want to allow a connection created in one thread to be used

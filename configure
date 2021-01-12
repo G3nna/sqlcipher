@@ -659,6 +659,7 @@ BUILD_EXEEXT
 TEMP_STORE
 ALLOWRELEASE
 XTHREADCONNECT
+TARGET_BOTAN2_INC
 SQLITE_THREADSAFE
 BUILD_CC
 VERSION_NUMBER
@@ -11991,6 +11992,8 @@ fi
 ##########
 # Which crypto library do we use
 #
+TARGET_BOTAN2_INC=""
+
 
 # Check whether --with-crypto-lib was given.
 if test "${with_crypto_lib+set}" = set; then :
@@ -12115,11 +12118,93 @@ else
 fi
 
       else
-        CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
-        BUILD_CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
-	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: openssl" >&5
+        if test "$crypto_lib" = "botan-2"; then
+          CFLAGS+=" -DSQLCIPHER_CRYPTO_BOTAN_2"
+          BUILD_CFLAGS+=" -DSQLCIPHER_CRYPTO_BOTAN_2"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: botan-2" >&5
+$as_echo "botan-2" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for botan_pwdhash in -lbotan-2" >&5
+$as_echo_n "checking for botan_pwdhash in -lbotan-2... " >&6; }
+if ${ac_cv_lib_botan_2_botan_pwdhash+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lbotan-2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char botan_pwdhash ();
+int
+main ()
+{
+return botan_pwdhash ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_botan_2_botan_pwdhash=yes
+else
+  ac_cv_lib_botan_2_botan_pwdhash=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_botan_2_botan_pwdhash" >&5
+$as_echo "$ac_cv_lib_botan_2_botan_pwdhash" >&6; }
+if test "x$ac_cv_lib_botan_2_botan_pwdhash" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBBOTAN_2 1
+_ACEOF
+
+  LIBS="-lbotan-2 $LIBS"
+
+else
+  as_fn_error $? "Library botan-2 not found. Install libbotan-2!\"" "$LINENO" 5
+fi
+
+          # find botan-2 includes since they are in a subdir
+          if test "$cross_compiling" != yes; then
+              for dir in /usr /usr/local /usr/contrib /mingw; do
+                as_ac_File=`$as_echo "ac_cv_file_$dir/include/botan-2/botan/build.h" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $dir/include/botan-2/botan/build.h" >&5
+$as_echo_n "checking for $dir/include/botan-2/botan/build.h... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "$dir/include/botan-2/botan/build.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+                  TARGET_BOTAN2_INC="-I$dir/include/botan-2"
+                  break
+
+fi
+
+              done
+          fi
+        else
+          CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
+          BUILD_CFLAGS+=" -DSQLCIPHER_CRYPTO_OPENSSL"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: openssl" >&5
 $as_echo "openssl" >&6; }
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HMAC_Init_ex in -lcrypto" >&5
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HMAC_Init_ex in -lcrypto" >&5
 $as_echo_n "checking for HMAC_Init_ex in -lcrypto... " >&6; }
 if ${ac_cv_lib_crypto_HMAC_Init_ex+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -12166,10 +12251,13 @@ else
   as_fn_error $? "Library crypto not found. Install openssl!\"" "$LINENO" 5
 fi
 
+        fi
       fi
     fi
   fi
 fi
+
+
 
 ##########
 # Do we want to allow a connection created in one thread to be used

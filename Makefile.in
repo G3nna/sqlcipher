@@ -94,6 +94,9 @@ TCC += $(OPTS)
 # Add in compile-time options for some libraries used by extensions
 TCC += @HAVE_ZLIB@
 
+# Add the botan-2 include location in case botan-2 is the crypto provider
+TCC += @TARGET_BOTAN2_INC@
+
 # Version numbers and release number for the SQLite being compiled.
 #
 VERSION = @VERSION@
@@ -149,7 +152,8 @@ CRYPTOLIBOBJ = \
   crypto_openssl.lo \
   crypto_libtomcrypt.lo \
   crypto_nss.lo \
-  crypto_cc.lo
+  crypto_cc.lo \
+  crypto_botan2.lo
 
 CRYPTOSRC = \
   $(TOP)/src/crypto.h \
@@ -159,7 +163,8 @@ CRYPTOSRC = \
 	$(TOP)/src/crypto_libtomcrypt.c \
 	$(TOP)/src/crypto_nss.c \
 	$(TOP)/src/crypto_openssl.c \
-	$(TOP)/src/crypto_cc.c
+	$(TOP)/src/crypto_cc.c \
+	$(TOP)/src/crypto_botan2.c
 
 # END CRYPTO
 

@@ -39,6 +39,9 @@
 /* Define to 1 if you have the `tomcrypt' library (-ltomcrypt). */
 #undef HAVE_LIBTOMCRYPT
 
+/* Define to 1 if you have the `libbotan-2' library (-lbotan-2). */
+#undef HAVE_LIBBOTAN_2
+
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
